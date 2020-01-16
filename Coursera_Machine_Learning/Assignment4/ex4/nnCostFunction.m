@@ -85,8 +85,7 @@ Theta2_grad = zeros(size(Theta2));
 % results or computation time is noticibly different.
 
 Delta2 = Delta1 = 0; % Accrued delta values
-fprintf('size of all theta:\n')
-sum(size([Theta1(:);Theta2(:)]))
+reg = (lambda / (2*m)) * sum([Theta1(:);Theta2(:)].^2);
 
 for t = 1:m
 	% Forward Propagation
@@ -101,23 +100,30 @@ for t = 1:m
 	z3 = Theta2 * a2;
 	a3 = sigmoid(z3); % size (a3) == 10x1
 	
+	y_t = y(t) == vec(1:size(a3,1));
+	j = (trace(-y_t' * log(a3) - (1-y_t)' * log(1-a3)) / m);
 	
 	% Back Propagation
 		% Theta1 is 25x400 because we aren't adding ones
 		% Theta2 is 10x25, similarly
+		% It seems like the back prop testing algorithm expects us to calculate gradients for biases,
+		% but then ignore them when accruing Deltas.
 	% % a1 = a1(2:end); % It's ok to trim these if we are adding the forward prop bias within the same for-loop
 	% % a2 = a2(2:end); % At least, I think so... and it is messy to do this; edits get dangerous.
 	
 	d3 = a3 - (y(t) == vec(1:size(a3,1)));
 	%d2 = (Theta2' * d3) .* sigmoidGradient(z2); % Don't use this because it calls sigmoid() two extra times
-	d2 = (Theta2(:,2:end)' * d3) .* (sigi .* (1 - sigi)); % size(d2) == 25x1
+	% d2 = (Theta2' * d3) .* (sigi .* (1 - sigi)); % size(d2) == 25x1
+	d2 = (Theta2' * d3) .* (a2 .* (1 - a2)); % size(d2) == 26x1
 	%d2 = (Theta2' * d3) .* a2 .* (1 - a2); % Can we use this, given that we've trimmed a2?
 	%d2 = (Theta2' * d3) .* a2(2:end) .* (1-a2(2:end)); % This is best if trimming is fast
 	
-	Delta2 = Delta2 + d3 * a2(2:end)'; % size(Delta2) == 10x25
-	Delta1 = Delta1 + d2 * a1(2:end)'; % size(Delta1) == 25x400
+	Delta2 = Delta2 + d3 * a2'; % size(Delta2) == 10x25
+	Delta1 = Delta1 + d2(2:end) * a1'; % size(Delta1) == 25x400
 	
 endfor
+
+J = sum(j) + reg;
 
 Theta1_grad = Delta1/m;	
 Theta2_grad = Delta2/m;
@@ -211,8 +217,10 @@ Delta1 = d2'*a1; % size(Delta1) == 25x400
 %TODO: Don't use bias units in sigmoid functions
 %}
 
-Theta1_grad = (Delta1 + lambda * Theta1(:,2:end)) / m;
-Theta2_grad = (Delta2 + lambda * Theta2(:,2:end)) / m;
+Theta1_grad = (Delta1 + lambda * Theta1) / m;
+Theta2_grad = (Delta2 + lambda * Theta2) / m;
+% Theta1_grad = (Delta1 + lambda * Theta1(:,2:end)) / m;
+% Theta2_grad = (Delta2 + lambda * Theta2(:,2:end)) / m;
 % fprintf("Size check:\n")
 % size(Theta1_grad)
 % size(Theta2_grad)
@@ -222,7 +230,5 @@ Theta2_grad = (Delta2 + lambda * Theta2(:,2:end)) / m;
 
 % Unroll gradients
 grad = [Theta1_grad(:) ; Theta2_grad(:)];
-fprintf('size of grad:\n')
-numel(grad)
 
 end
