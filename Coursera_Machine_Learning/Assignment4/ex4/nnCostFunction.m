@@ -85,6 +85,8 @@ Theta2_grad = zeros(size(Theta2));
 % results or computation time is noticibly different.
 
 Delta2 = Delta1 = 0; % Accrued delta values
+fprintf('size of all theta:\n')
+sum(size([Theta1(:);Theta2(:)]))
 
 for t = 1:m
 	% Forward Propagation
@@ -103,17 +105,17 @@ for t = 1:m
 	% Back Propagation
 		% Theta1 is 25x400 because we aren't adding ones
 		% Theta2 is 10x25, similarly
-	a1 = a1(2:end); % It's ok to trim these if we are adding the bias within the same for-loop
-	a2 = a2(2:end);
+	% % a1 = a1(2:end); % It's ok to trim these if we are adding the forward prop bias within the same for-loop
+	% % a2 = a2(2:end); % At least, I think so... and it is messy to do this; edits get dangerous.
 	
 	d3 = a3 - (y(t) == vec(1:size(a3,1)));
 	%d2 = (Theta2' * d3) .* sigmoidGradient(z2); % Don't use this because it calls sigmoid() two extra times
-	d2 = (Theta2(:,2:end)' * d3) .* (sigi .* (1 - sigi));
+	d2 = (Theta2(:,2:end)' * d3) .* (sigi .* (1 - sigi)); % size(d2) == 25x1
 	%d2 = (Theta2' * d3) .* a2 .* (1 - a2); % Can we use this, given that we've trimmed a2?
-	% size(d2) == 25x1
+	%d2 = (Theta2' * d3) .* a2(2:end) .* (1-a2(2:end)); % This is best if trimming is fast
 	
-	Delta2 = Delta2 + d3 * a2'; % size(Delta2) == 10x25
-	Delta1 = Delta1 + d2 * a1'; % size(Delta1) == 25x400
+	Delta2 = Delta2 + d3 * a2(2:end)'; % size(Delta2) == 10x25
+	Delta1 = Delta1 + d2 * a1(2:end)'; % size(Delta1) == 25x400
 	
 endfor
 
@@ -211,15 +213,16 @@ Delta1 = d2'*a1; % size(Delta1) == 25x400
 
 Theta1_grad = (Delta1 + lambda * Theta1(:,2:end)) / m;
 Theta2_grad = (Delta2 + lambda * Theta2(:,2:end)) / m;
-fprintf("Size check:\n")
-size(Theta1_grad)
-size(Theta2_grad)
+% fprintf("Size check:\n")
+% size(Theta1_grad)
+% size(Theta2_grad)
 % -------------------------------------------------------------
 
 % =========================================================================
 
 % Unroll gradients
 grad = [Theta1_grad(:) ; Theta2_grad(:)];
-
+fprintf('size of grad:\n')
+numel(grad)
 
 end
