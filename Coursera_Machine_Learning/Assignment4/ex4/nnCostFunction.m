@@ -62,6 +62,7 @@ Theta2_grad = zeros(size(Theta2));
 %               and Theta2_grad from Part 2.
 %
 
+
 % a1 will have 400 units (input)
 % a2 will have 25 units
 % a3 will have 10 units (output)
@@ -69,10 +70,10 @@ Theta2_grad = zeros(size(Theta2));
 
 % We could probably do forward propogation with an unknown number of theta's provided. 
 % Theta would be an unrolled vector of all theta_i_j_k's. We would also need a matrix of Lx2
-% to provide the dimensions of each theta matrix. Then we could unroll it and run it through
-% a for-loop L number of times. You could also write a method for unrolling theta given a 
-% variable number of theta matrices, complete with initial values. Then you provide theta matrices,
-% and that completely describes your neural net. Anyway...
+% to provide the dimensions of each theta matrix, where L is the number of stages.
+% Then we could unroll it and run it through a for-loop L number of times. 
+% You could also write a method for unrolling theta given a variable number of theta matrices, 
+% complete with initial values. Then you provide theta matrices,and that completely describes your neural net.
 
 
 
@@ -82,6 +83,10 @@ Theta2_grad = zeros(size(Theta2));
 % This is done as recommended by the text, by passing a single training example through forward propogation
 % and back in a for-loop. Later, I will try to do this with all examples at once, mostly to see if the
 % results or computation time is noticibly different.
+
+% This doesn't fully work. I got vectorized implementation working at it was several times faster, so I
+% didn't finish this.
+
 %{
 Delta2 = Delta1 = 0; % Accrued delta values
 reg = (lambda / (2*m)) * sum([Theta1(:);Theta2(:)].^2);
@@ -127,6 +132,8 @@ J = sum(j) + reg;
 Theta1_grad = Delta1/m;	
 Theta2_grad = Delta2/m;
 %}
+
+
 %%%%%%%%%%%%%%%%%
 %Full-Set Method%
 %%%%%%%%%%%%%%%%%
@@ -141,14 +148,18 @@ Theta2_grad = Delta2/m;
 	% Theta1 is 25x401 after adding ones
 	% Theta2 is 10x26 after adding ones
 a1 = [ones(size(X, 1), 1), X]; % Add bias term. size(a1) == 5000x401
+% % Saving the result of sigmoid without bias terms, for use in back prop
+% z2 = sigmoid(a1 * Theta1'); % size(a2) == 5000x25
+% a2 = [ones(size(z2, 1), 1) z2]; % Add bias term. size(a2) == 5000x26
+% Not bothering to remove bias terms for back prop
 a2 = sigmoid(a1 * Theta1'); % size(a2) == 5000x25
 a2 = [ones(size(a2, 1), 1) a2]; % Add bias term. size(a2) == 5000x26
 a3 = sigmoid(a2 * Theta2'); % size (a3) == 5000x10
 
-% The hypothesis in this case is kept as a 5000x10 matrix to reflect accuracy as compared to the 
-% classification vectors (e.g. [0 0 0 1 0 0 0 0 0]). An alternative is to find the best fit for each
-% row in the hypothesis and convert it into a vector. Then we could compare that to y (as a vector)
-% That would be something like this:
+	% The hypothesis in this case is kept as a 5000x10 matrix to reflect accuracy as compared to the 
+	% classification vectors (e.g. [0 0 0 1 0 0 0 0 0]). An alternative is to find the best fit for each
+	% row in the hypothesis to convert it into a vector. Then we could compare that to y (as a vector)
+	% That would be something like this:
 
 %[junk, indx] = ind(max(a3, [], 2)); % Find max of each row and the index (along the row) of that value.
 %hyp = indx; % The index within the row is the value we want. This creates a 5000-dim vector.
@@ -170,70 +181,67 @@ reg = (lambda / (2*m)) * sum([Theta1(:);Theta2(:)].^2);
 %J = (1/m) * (trace(-y' * log(a3)) - trace((1-y)' * log(1-a3)));
 J = (trace(-y_vec' * log(a3) - (1-y_vec)' * log(1-a3)) / m) + reg;
 
-%{
-% Back Propagation (pre-trimmed)
-	% Theta1 is 25x400 because we aren't adding ones
-	% Theta2 is 10x25, similarly
-Delta2 = Delta1 = 0; % Accrued delta values
-Theta1 = Theta1(:,2:end); % Remove bias terms for back propogation
-Theta2 = Theta2(:,2:end);
-a2 = a2(:,2:end);
-a1 = a1(:,2:end);
-	
-d3 = a3 - y_vec; % d3 = size(5000x10)
-% From https://www.coursera.org/learn/machine-learning/resources/EcbzQ :
-d2 = (d3 * Theta2) .* a2 .* (1 - a2); % size(d3 * Theta2) == 5000x25, size(d2) == 5000x25
-% (It's basically the chain rule applied to find the derivative of the formula we use to find a3.)
-
-% No need to find d1, of course. Can't have errors in calculating a1 since those are our givens.
-
-% Accrue errors for our Theta's
-Delta2 = d3'*a2; % size(Delta2) == 10x25
-Delta1 = d2'*a1; % size(Delta1) == 25x400
-%}
 
 % Back Propagation (without pre-trimming)
 	% Theta1 is 25x400 because we aren't adding ones
 	% Theta2 is 10x25, similarly
-Delta2 = Delta1 = 0; % Accrued delta values
+% Delta2 = Delta1 = 0; % Accrued delta values
 % Theta1 = Theta1(:,2:end); % Remove bias terms for back propogation
 % Theta2 = Theta2(:,2:end);
 % a2 = a2(:,2:end);
-% a1 = a1(:,2:end);
+% a1 = a1(:,2:end
+
+	% Apparently, we need to include bias terms for calculating delta's for Theta. Otherwise, the test
+	% function for this course will find incorrect matrix dimensions. We only need to omit biases when
+	% we do the final accrual of delta terms. I'm not sure yet if this is a best-practice thing or just
+	% a consequence of how they've set up their tests. I understood the lectures differently; I will 
+	% see for sure in the coming weeks.
 	
 d3 = a3 - y_vec; % d3 = size(5000x10)
 % From https://www.coursera.org/learn/machine-learning/resources/EcbzQ :
-d2 = (d3 * Theta2) .* a2 .* (1 - a2); % size(d3 * Theta2) == 5000x25, size(d2) == 5000x25
+% % Without bias terms
+% d2 = (d3 * Theta2(:,2:end)) .* z2 .* (1 - z2); % size(d3 * Theta2) == 5000x25, size(d2) == 5000x25
+% d2 = [zeros(size(d2, 1), 1) d2]; % This feels like an awful hack. Just trying to get dimensions to match.
+% With bias terms
+d2 = (d3 * Theta2) .* a2 .* (1 - a2); % size(d3 * Theta2) == 5000x26, size(d2) == 5000x26
 % (It's basically the chain rule applied to find the derivative of the formula we use to find a3.)
 
 % No need to find d1, of course. Can't have errors in calculating a1 since those are our givens.
 
 % Accrue errors for our Theta's
-Delta2 = d3'*a2; % size(Delta2) == 10x25
-% Ignore delta terms from bias nodes, even though we calculated them.
-% This results in different size Delta matrices, somehow :-(
-Delta1 = d2(:,2:end)'*a1; % size(Delta1) == 25x400
+Delta2 = d3' * a2; % size(Delta2) == 10x26
+% Bias terms cannot backpropogate, so we ignore them.
+Delta1 = d2(:,2:end)' * a1; % size(Delta1) == 25x401
 % I am using this form because I can quickly sum all the delta values with matrix multiplication.
 % I want to sum the terms at any node across all training examples. I should end up with a matrix that holds
 % the accrued error for the Theta's. Thus, the dimensions should also end up the same as the Theta's.
 % Part of the reason this works is because I am not re-using values from one stage to calculate the next.
 % Nor am I using the values from one training example to influence the next. It is all simple sums and
-% multiplication. That means that not only am I allowed to use matrices this way, but I can also
-% apply this in a for-loop to express any number of layers.
+% multiplication, so I can crunch all the numbers at the same time. That means that not only am I allowed 
+% to use matrices this way, but I can also apply this in a for-loop to express any number of layers.
 
+% % Regularize errors
+% Delta2_reg = (lambda / m) * Theta2(:,2:end);
+% Delta1_reg = (lambda / m) * Theta1(:,2:end);
 
-%TODO: Theta1 and Theta2 had the bias terms infused into them. Remove the bias from back propogation. (Where?!)
-%TODO: Test pre-trimed a2 instead of z2 for sigmoid gradient in back prop
+% Delta2(:, 2:end) = Delta2(:, 2:end) + Delta2_reg;
+% Delta1(:, 2:end) = Delta1(:, 2:end) + Delta1_reg;
+
+% Theta2_grad = Delta2 / m;
+% Theta2_grad(:, 2:end) = Delta2(:, 2:end) + Delta2_reg;
+% Theta1_grad = Delta1 / m;
+% Theta1_grad(:, 2:end) = Delta1(:, 2:end) + Delta1_reg;
+
 %TODO: Don't use bias units in sigmoid functions
-
+	% Really not sure how to do this yet. I couldn't get this to work unless I included bias terms
+	% all the until the final accrual step. I'm probably removing the bias terms in a way that doesn't
+	% work for all matrix sizes. It made no perceivable difference afwhoster all, and neither method was 
+	% exactly accurate anyway.
 
 Theta1_grad = (Delta1 + lambda * Theta1) / m;
 Theta2_grad = (Delta2 + lambda * Theta2) / m;
-% Theta1_grad = (Delta1 + lambda * Theta1(:,2:end)) / m;
-% Theta2_grad = (Delta2 + lambda * Theta2(:,2:end)) / m;
-% fprintf("Size check:\n")
-% size(Theta1_grad)
-% size(Theta2_grad)
+% Theta1_grad = Delta1;
+% Theta2_grad = Delta2;
 % -------------------------------------------------------------
 
 % =========================================================================
