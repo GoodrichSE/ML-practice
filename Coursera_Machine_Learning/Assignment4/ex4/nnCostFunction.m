@@ -63,12 +63,12 @@ Theta2_grad = zeros(size(Theta2));
 %
 
 
-% a1 will have 400 units (input)
-% a2 will have 25 units
+% a1 will have 401 units (input)
+% a2 will have 26 units
 % a3 will have 10 units (output)
 % Should be able to handle any size though
 
-% We could probably do forward propogation with an unknown number of theta's provided. 
+% Random thought: We could probably do forward propogation with an unknown number of theta's provided. 
 % Theta would be an unrolled vector of all theta_i_j_k's. We would also need a matrix of Lx2
 % to provide the dimensions of each theta matrix, where L is the number of stages.
 % Then we could unroll it and run it through a for-loop L number of times. 
@@ -141,19 +141,19 @@ Theta2_grad = Delta2/m;
 % This is an attempt to pass the full 5000-element training set instead of a single training example.
 % It will pass the inputs through as a 5000x400 matrix. It will pass once through the forward propogation
 % step, ending in a 5000x10 matrix showing the probability that that training example resulted in any
-% of the 10 possible outputs. Then it will pass once through  back-propogation to get the gradients.
+% of the 10 possible outputs. Then it will pass once through back-propogation to get the gradients.
 
 % Forward Propagation
-	% X is 5000x400 (5000x401 after adding x_0)
+	% X is 5000x400
 	% Theta1 is 25x401 after adding ones
 	% Theta2 is 10x26 after adding ones
 a1 = [ones(size(X, 1), 1), X]; % Add bias term. size(a1) == 5000x401
-% % Saving the result of sigmoid without bias terms, for use in back prop
-% z2 = sigmoid(a1 * Theta1'); % size(a2) == 5000x25
-% a2 = [ones(size(z2, 1), 1) z2]; % Add bias term. size(a2) == 5000x26
-% Not bothering to remove bias terms for back prop
-a2 = sigmoid(a1 * Theta1'); % size(a2) == 5000x25
-a2 = [ones(size(a2, 1), 1) a2]; % Add bias term. size(a2) == 5000x26
+% Saving the result of sigmoid without bias terms, for use in back prop
+z2 = sigmoid(a1 * Theta1'); % size(z2) == 5000x25
+a2 = [ones(size(z2, 1), 1) z2]; % Add bias term. size(a2) == 5000x26
+% % Not bothering to remove bias terms for back prop
+% a2 = sigmoid(a1 * Theta1'); % size(a2) == 5000x25
+% a2 = [ones(size(a2, 1), 1) a2]; % Add bias term. size(a2) == 5000x26
 a3 = sigmoid(a2 * Theta2'); % size (a3) == 5000x10
 
 	% The hypothesis in this case is kept as a 5000x10 matrix to reflect accuracy as compared to the 
@@ -170,10 +170,12 @@ y_vec = y==1:num_labels; % size(y_vec) = 5000x10, 5000 10-class classification v
 
 % Regularization
 %reg = (lambda / (2*m)) * (sum(sum(Theta1.^2)) + sum(sum(Theta2.^2)));
-reg = (lambda / (2*m)) * sum([Theta1(:);Theta2(:)].^2);
+reg = (lambda / (2*m)) * sum([Theta1(:,2:end)(:);Theta2(:,2:end)(:)].^2);
+	% Do not include the bias terms in this! It will mess everything up and be hard to find.
+	% Also do not actually trim theta's. Just return trimed values but do not use that to overwrite theta.
 
 % Cost
-	% We need element-wise multiplication for the nested sum in this cost function to work.
+	% We need element-wise multiplication for the nested sum in the cost function formula for this Sto work.
 	% Equations of the form (y' * a3) worked for vector matrices, but in rectangular matrices
 	% we get a rectangular matrix with incorrect sums. The correct sums are only along the main diagonal.
 	% The trace() function sums along the diagonal, as does sum(<square-matrix> * I).
@@ -183,13 +185,11 @@ J = (trace(-y_vec' * log(a3) - (1-y_vec)' * log(1-a3)) / m) + reg;
 
 
 % Back Propagation (without pre-trimming)
-	% Theta1 is 25x400 because we aren't adding ones
-	% Theta2 is 10x25, similarly
 % Delta2 = Delta1 = 0; % Accrued delta values
 % Theta1 = Theta1(:,2:end); % Remove bias terms for back propogation
 % Theta2 = Theta2(:,2:end);
 % a2 = a2(:,2:end);
-% a1 = a1(:,2:end
+% a1 = a1(:,2:end);
 
 	% Apparently, we need to include bias terms for calculating delta's for Theta. Otherwise, the test
 	% function for this course will find incorrect matrix dimensions. We only need to omit biases when
@@ -198,50 +198,68 @@ J = (trace(-y_vec' * log(a3) - (1-y_vec)' * log(1-a3)) / m) + reg;
 	% see for sure in the coming weeks.
 	
 d3 = a3 - y_vec; % d3 = size(5000x10)
-% From https://www.coursera.org/learn/machine-learning/resources/EcbzQ :
-% % Without bias terms
-% d2 = (d3 * Theta2(:,2:end)) .* z2 .* (1 - z2); % size(d3 * Theta2) == 5000x25, size(d2) == 5000x25
+% From https://www.coursera.org/learn/machine-learning/resources/EcbzQ : 
+% Use 2 .* (1 - z2) instead of sigmoidGradient(z2)
+% Without bias terms
+d2 = (d3 * Theta2(:,2:end)) .* z2 .* (1 - z2); % size(d2) == 5000x25
 % d2 = [zeros(size(d2, 1), 1) d2]; % This feels like an awful hack. Just trying to get dimensions to match.
 % With bias terms
-d2 = (d3 * Theta2) .* a2 .* (1 - a2); % size(d3 * Theta2) == 5000x26, size(d2) == 5000x26
+% d2 = (d3 * Theta2) .* a2 .* (1 - a2); % size(d3 * Theta2) == 5000x26, size(d2) == 5000x26
 % (It's basically the chain rule applied to find the derivative of the formula we use to find a3.)
 
 % No need to find d1, of course. Can't have errors in calculating a1 since those are our givens.
 
 % Accrue errors for our Theta's
 Delta2 = d3' * a2; % size(Delta2) == 10x26
-% Bias terms cannot backpropogate, so we ignore them.
-Delta1 = d2(:,2:end)' * a1; % size(Delta1) == 25x401
-% I am using this form because I can quickly sum all the delta values with matrix multiplication.
-% I want to sum the terms at any node across all training examples. I should end up with a matrix that holds
-% the accrued error for the Theta's. Thus, the dimensions should also end up the same as the Theta's.
-% Part of the reason this works is because I am not re-using values from one stage to calculate the next.
-% Nor am I using the values from one training example to influence the next. It is all simple sums and
-% multiplication, so I can crunch all the numbers at the same time. That means that not only am I allowed 
-% to use matrices this way, but I can also apply this in a for-loop to express any number of layers.
+% % Bias terms cannot backpropogate, so we ignore the ones in the output for this stage.
+% Delta1 = d2(:,2:end)' * a1; % size(Delta1) == 25x401
+% Use this if we've taken care of the bias term in calculating d2 above.
+Delta1 = d2' * a1; % size(Delta1) == 25x400
+	% I am using this form because I can quickly sum all the delta values with matrix multiplication.
+	% I want to sum the terms at any node across all training examples. I should end up with a matrix that holds
+	% the accrued error for the Theta's. Thus, the dimensions should also end up the same as the Theta's.
+	% Part of the reason this works is because I am not re-using values from one stage to calculate the next.
+	% Nor am I using the values from one training example to influence the next. It is all simple sums and
+	% multiplication, so I can crunch all the numbers at the same time. That means that not only am I allowed 
+	% to use matrices this way, but I can also apply this in a for-loop to express any number of layers.
 
 % % Regularize errors
+	% (With a few different methods)
+
 % Delta2_reg = (lambda / m) * Theta2(:,2:end);
 % Delta1_reg = (lambda / m) * Theta1(:,2:end);
-
 % Delta2(:, 2:end) = Delta2(:, 2:end) + Delta2_reg;
 % Delta1(:, 2:end) = Delta1(:, 2:end) + Delta1_reg;
 
+% Delta2_reg = (lambda / m) * Theta2(:,2:end);
+% Delta1_reg = (lambda / m) * Theta1(:,2:end);
 % Theta2_grad = Delta2 / m;
-% Theta2_grad(:, 2:end) = Delta2(:, 2:end) + Delta2_reg;
+% Theta2_grad(:, 2:end) = Delta2(:, 2:end) / m + Delta2_reg;
 % Theta1_grad = Delta1 / m;
-% Theta1_grad(:, 2:end) = Delta1(:, 2:end) + Delta1_reg;
+% Theta1_grad(:, 2:end) = Delta1(:, 2:end) / m + Delta1_reg;
+	% Inefficient and somehow made bad dimensions
+	
+% Theta1_grad = (Delta1(:, 2:end) + lambda * Theta1(:, 2:end)) / m;
+% Theta1_grad = [Delta1(:,1) Theta1_grad];
+% Theta2_grad = (Delta2(:, 2:end) + lambda * Theta2(:, 2:end)) / m;
+% Theta2_grad = [Delta2(:,1) Theta2_grad];
+	% More efficient, but also did not work for some reason
+	
+Delta1_reg = lambda * Theta1(:,2:end);
+Delta2_reg = lambda * Theta2(:,2:end);
+Delta1_reg = [zeros(size(Delta1_reg, 1), 1) Delta1_reg];
+Delta2_reg = [zeros(size(Delta2_reg, 1), 1) Delta2_reg];
+Theta1_grad = (Delta1 + Delta1_reg) / m;
+Theta2_grad = (Delta2 + Delta2_reg) / m;
+	% This seems to work best.
 
-%TODO: Don't use bias units in sigmoid functions
-	% Really not sure how to do this yet. I couldn't get this to work unless I included bias terms
-	% all the until the final accrual step. I'm probably removing the bias terms in a way that doesn't
-	% work for all matrix sizes. It made no perceivable difference afwhoster all, and neither method was 
-	% exactly accurate anyway.
-
-Theta1_grad = (Delta1 + lambda * Theta1) / m;
-Theta2_grad = (Delta2 + lambda * Theta2) / m;
-% Theta1_grad = Delta1;
-% Theta2_grad = Delta2;
+% Theta1(:,1) = 0;
+% Theta2(:,1) = 0;
+% Theta1_grad = (Delta1 + (lambda * Theta1)) / m;
+% Theta2_grad = (Delta2 + (lambda * Theta2)) / m;
+	% As suggested by https://www.coursera.org/learn/machine-learning/discussions/all/threads/a8Kce_WxEeS16yIACyoj1Q
+	% Also works.
+	
 % -------------------------------------------------------------
 
 % =========================================================================
