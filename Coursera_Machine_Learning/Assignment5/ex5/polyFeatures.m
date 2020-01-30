@@ -15,9 +15,14 @@ X_poly = zeros(numel(X), p);
 %
 % 
 
+% There's probably a sexy way to vectorize this. I don't expect it will be called too often so 
+% there's really no need.
 
+for n = 1:p
 
+	X_poly(:, n) = X .^ n;
 
+endfor
 
 
 % =========================================================================

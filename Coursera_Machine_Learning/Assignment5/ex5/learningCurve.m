@@ -53,11 +53,34 @@ error_val   = zeros(m, 1);
 
 % ---------------------- Sample Solution ----------------------
 
+% Sweep from low amounts of data to high
+for i = 1:m
+% The following syntax will reduce the number of error data we collect. Unfortunately, it will also
+% mess with the indexes for our error vectors. I want to not get such huge vectors. Oh well.
+% It seems like the rest of this assignment expects error vectors of size m anyway.
+% for i = 1:5:m
 
+	% Subset of training data used to observe effect of different training sizes on error
+	Xtrain = X(1:i, :);
+	ytrain = y(1:i, :);
+	
+	% Get trained theta's for a dataset of this size
+	% theta = trainLinearReg(Xtrain, ytrain, lambda);
+	theta = trainLinearReg(Xtrain, ytrain, 0);
 
+	% Calculate error for a dataset of this size. Store into vectors for training data and validation data
+	% error_train(i) = linearRegCostFunction(Xtrain, ytrain, theta, 0);
+	% error_val(i) = linearRegCostFunction(Xval, yval, theta, 0);
+	error_train(i) = linearRegCostFunction(Xtrain, ytrain, theta, lambda);
+	error_val(i) = linearRegCostFunction(Xval, yval, theta, lambda);
+	
+endfor
 
+% fprintf('results:\n')
+% error_train
+% error_val
 
-
+% TODO: Lambda should be 0 for some part of training. Find out where.
 
 % -------------------------------------------------------------
 
