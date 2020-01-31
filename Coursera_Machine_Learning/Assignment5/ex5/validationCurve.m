@@ -39,12 +39,15 @@ error_val = zeros(length(lambda_vec), 1);
 %
 %
 
+% ASSUMES: X and y are not the full dataset, but a training subset.
 
+for i = 1:length(lambda_vec)
+	lambda = lambda_vec(i);
+	theta = trainLinearReg(X, y, lambda);
 
-
-
-
-
+	error_train(i) = linearRegCostFunction(X, y, theta, lambda);
+	error_val(i) = linearRegCostFunction(Xval, yval, theta, lambda);
+endfor
 
 
 

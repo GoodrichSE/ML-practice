@@ -47,7 +47,7 @@ J = (sum((X * theta - y).^2) + lambda * sum(theta(2:end).^2)) / (2*m);
 
 grad = (X' * (X * theta - y) + lambda * theta) / m;
 % grad(1) = X(1) * sum(X * theta - y) / m;
-grad(1) = grad(1) - lambda * theta(1) /  m; % This seems cleaner to me. It might cause problems though.
+grad(1) = grad(1) - (lambda * theta(1) /  m); % This is cleaner to me for some reason
 % grad = (Xbias' * (Xbias * theta - y) + lambda * theta) / m;
 
 
