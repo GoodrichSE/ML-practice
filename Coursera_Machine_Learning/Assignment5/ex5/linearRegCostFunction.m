@@ -39,6 +39,8 @@ grad = zeros(size(theta));
 
 % J = (sum((Xbias * theta - y).^2) + theta(2:end).^2) / (2*m);
 J = (sum((X * theta - y).^2) + lambda * sum(theta(2:end).^2)) / (2*m);
+% NOTE: Divide-by-zero warnings in this assignment come from fmincg. If J evaluates to 0,
+% which happenes quickly on a low-example set, the assignment will throw warnings.
 
 % size(X)
 % size(y)

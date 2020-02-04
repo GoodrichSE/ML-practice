@@ -42,11 +42,15 @@ error_val = zeros(length(lambda_vec), 1);
 % ASSUMES: X and y are not the full dataset, but a training subset.
 
 for i = 1:length(lambda_vec)
+	% Grab each lambda
 	lambda = lambda_vec(i);
+	% Train theta using lambda
 	theta = trainLinearReg(X, y, lambda);
 
-	error_train(i) = linearRegCostFunction(X, y, theta, lambda);
-	error_val(i) = linearRegCostFunction(Xval, yval, theta, lambda);
+	% Calculate errors with trained theta. Do not regularize again--that would be redundant and
+	% ruin our theta.
+	error_train(i) = linearRegCostFunction(X, y, theta, 0);
+	error_val(i) = linearRegCostFunction(Xval, yval, theta, 0);
 endfor
 
 

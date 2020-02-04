@@ -53,6 +53,8 @@ error_val   = zeros(m, 1);
 
 % ---------------------- Sample Solution ----------------------
 
+
+
 % Sweep from low amounts of data to high
 for i = 1:m
 % The following syntax will reduce the number of error data we collect. Unfortunately, it will also
@@ -63,24 +65,26 @@ for i = 1:m
 	% Subset of training data used to observe effect of different training sizes on error
 	Xtrain = X(1:i, :);
 	ytrain = y(1:i, :);
+	% Subset of validation data, too. We're not supposed to use this but I'm testing the scripts.
+	% Xvalset = Xval(1:i, :);
+	% yvalset = yval(1:i, :);
 	
 	% Get trained theta's for a dataset of this size
-	% theta = trainLinearReg(Xtrain, ytrain, lambda);
-	theta = trainLinearReg(Xtrain, ytrain, 0);
+	theta = trainLinearReg(Xtrain, ytrain, lambda);
+	% theta = trainLinearReg(Xtrain, ytrain, 0);
 
 	% Calculate error for a dataset of this size. Store into vectors for training data and validation data
-	% error_train(i) = linearRegCostFunction(Xtrain, ytrain, theta, 0);
-	% error_val(i) = linearRegCostFunction(Xval, yval, theta, 0);
-	error_train(i) = linearRegCostFunction(Xtrain, ytrain, theta, lambda);
-	error_val(i) = linearRegCostFunction(Xval, yval, theta, lambda);
+	error_train(i) = linearRegCostFunction(Xtrain, ytrain, theta, 0);
+	error_val(i) = linearRegCostFunction(Xval, yval, theta, 0);
+	% error_train(i) = linearRegCostFunction(Xtrain, ytrain, theta, lambda);
+	% error_val(i) = linearRegCostFunction(Xval, yval, theta, lambda);
+	% error_val(i) = linearRegCostFunction(Xvalset, yvalset, theta, 0);
 	
 endfor
 
 % fprintf('results:\n')
 % error_train
 % error_val
-
-% TODO: Lambda should be 0 for some part of training. Find out where.
 
 % -------------------------------------------------------------
 
