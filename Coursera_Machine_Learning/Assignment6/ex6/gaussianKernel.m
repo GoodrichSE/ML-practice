@@ -16,10 +16,12 @@ sim = 0;
 %
 %
 
+% I'm getting numbers that pass the tests, but I might still be doing this wrong. Should sim be
+% a vector of size m? It seems like we're operating on a single example at a time here.
 
-
-
-
+% ||x1 - x2||^2 = (x1_1 - x2_1)^2 +(x1_1 - x2_2)^2 + ... 
+q = sum((x1-x2).^2) / (2 * (sigma.^2));
+sim = exp(-q);
 
 % =============================================================
     
