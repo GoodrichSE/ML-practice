@@ -23,35 +23,34 @@ sigma = 0.3;
 %        mean(double(predictions ~= yval))
 %
 
-trial = [0.01; 0.03; 0.1; 0.3; 1; 3; 10; 30];
+attempts = [0.01; 0.03; 0.1; 0.3; 1; 3; 10; 30];
 % Arbitrarily high number that we hope to beat
 least_error = 10000;
 
-%TODO: Name iterators for clarity. Use valueus instead of indexes
-for i = 1:length(trial)
-	C_trial = trial(i);
-	for j = 1:length(trial)
-		sigma_trial = trial(j);
+for i = 1:length(attempts)
+	C_attempt = attempts(i)
+	for j = 1:length(attempts)
+		sigma_attempt = attempts(j)
+		
+% This is more readable, but passes the whole vector. There's probably a way to make it work.
+% for C_attempt = attempts
+	% for sigma_attempt = attempts
 		
 		% The extra course resources told me to use this syntax, which I don't fully understand,
 		% from https://www.coursera.org/learn/machine-learning/discussions/weeks/7/threads/ytrutj_YEeai1RIqHM9jYQ:
-		model = svmTrain(X, y, C_trial, @(x1, x2) gaussianKernel(x1, x2, sigma_trial));
+		model = svmTrain(X, y, C_attempt, @(x1, x2) gaussianKernel(x1, x2, sigma_attempt));
 		
 		hypothesis = svmPredict(model, Xval);
 		
 		error = mean(double(hypothesis ~= yval));
-		%svmPredict(svmTrain(Xval, y, C_trial, @(x1, x2) gaussianKernel(X, y, sigma_trial)), Xval)
+		%svmPredict(svmTrain(Xval, y, C_attempt, @(x1, x2) gaussianKernel(X, y, sigma_attempt)), Xval)
 		if error < least_error
 			least_error = error;
-			C = C_trial;
-			sigma = sigma_trial;
+			C = C_attempt;
+			sigma = sigma_attempt;
 		end
 	endfor
 endfor
-
-
-
-
 
 % =========================================================================
 
