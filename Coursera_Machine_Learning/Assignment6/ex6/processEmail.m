@@ -54,6 +54,9 @@ fprintf('\n==== Processed Email ====\n\n');
 % Process file
 l = 0;
 
+% This repeats for every str element in the email. It would be more efficient to find all other
+% elements that contain that string, once a string is found. Then we could skip the dictionary lookup
+% for any strings that appear multiple times...  but I don't want to actually build that.
 while ~isempty(email_contents)
 
     % Tokenize and also get rid of any punctuation
@@ -96,14 +99,41 @@ while ~isempty(email_contents)
     % Note: You can use strcmp(str1, str2) to compare two strings (str1 and
     %       str2). It will return 1 only if the two strings are equivalent.
     %
+	% size(email_contents)
+	% fprintf(email_contents, '\n')
+	% fprintf(str, '\n')
+	
+	
+	% This works, but it puts all instances of the word together. It might also double-count words.
+	
+	% indices = strfind(vocabList, str);
+	% if ~isempty(indices)
+		% for i = 1:length(indices)
+			% word_indices = [word_indices; indices(i)];
+		% end	
+	% end
 
+	% I think strfind just doesn't work because it can return an array of strings
+	% for i=1:length(vocabList)
+		% indices = strfind(vocabList, str);
+		% if indices ~= [];
+			% word_indices = [word_indices; vocabList(i)];
+			% break
+		% end
+	% end
+	
+	for i=1:length(vocabList)
+		if strcmp(vocabList{i}, str); % Brackets to access cell array (array of strings)
+			word_indices = [word_indices; i];
+			break
+		end
+	end
 
-
-
-
-
-
-
+	% strtok doesn't seem to work with numbers
+	% while ~isempty(indices)
+		% substr = strtok(indices);
+		% word_indices = [word_indices; substr];
+	% end
 
 
     % =============================================================

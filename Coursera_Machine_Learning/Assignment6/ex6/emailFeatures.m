@@ -49,10 +49,15 @@ x = zeros(n, 1);
 %
 
 
+% for i = 1:length(word_indices) % This is defined above to be the same length as our vocab list
+	% fprintf('word_indices(%f): %f\n', i, word_indices(i))
+	% x(word_indices(i)) = 1;
+	% fprintf('x set to 1 at: %f\n', i)
+	% fprintf('%f\n', x(word_indices)) % This line led to me discovering the vector method below...
+% endfor
 
-
-
-
+% This is much simpler than the for-loop
+x(word_indices) = 1;
 
 
 % =========================================================================

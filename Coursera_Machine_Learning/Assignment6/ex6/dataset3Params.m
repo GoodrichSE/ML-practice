@@ -28,9 +28,9 @@ attempts = [0.01; 0.03; 0.1; 0.3; 1; 3; 10; 30];
 least_error = 10000;
 
 for i = 1:length(attempts)
-	C_attempt = attempts(i)
+	C_attempt = attempts(i);
 	for j = 1:length(attempts)
-		sigma_attempt = attempts(j)
+		sigma_attempt = attempts(j);
 		
 % This is more readable, but passes the whole vector. There's probably a way to make it work.
 % for C_attempt = attempts
