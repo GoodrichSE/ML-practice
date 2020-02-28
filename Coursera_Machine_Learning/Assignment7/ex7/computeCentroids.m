@@ -26,12 +26,14 @@ centroids = zeros(K, n);
 % Note: You can use a for-loop over the centroids to compute this.
 %
 
+% Split centroids into columns
+for idx = 1:K
+	centVec = (centroid == idx);
+	centVecs = [centVecs centVec];
+endfor
 
-
-
-
-
-
+assignments = centVecs' * X; % Examples now organized in columns according to nearest centroid
+avgs = mean(assignments, 1);
 
 % =============================================================
 

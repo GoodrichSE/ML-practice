@@ -21,11 +21,21 @@ idx = zeros(size(X,1), 1);
 % Note: You can use a for-loop over the examples to compute this.
 %
 
+distances = []; % Temporary matrix for holding all centroid distances. Will be m x K.
 
+% for i = 1:size(centroids, 1) % One centroid per row
+for i = 1:K % One centroid per row
+	% centroid = centroids(i,:); %size(centroid) == 1 x n
+	% % Distance to each example (m x 1 vector)
+	% distance = norm((X - centroid), 'fro', 'rows');
+	
+	distance = norm((X - centroids(i,:)), 'fro', 'rows');
+	% Accrue distances.
+	distances = [distances distance];
+	size(distances)
+endfor %size(distances) == mxK
 
-
-
-
+[val, idx] = min(distances, [], 2); % Closest distance to centroid per row (i.e. per example)
 
 % =============================================================
 
