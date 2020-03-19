@@ -40,14 +40,21 @@ Theta_grad = zeros(size(Theta));
 %                     partial derivatives w.r.t. to each element of Theta
 %
 
+% Assumes X is row:movie, col:feature; Theta is row:user, col:feature-parameter;
+% and Y and R are both row:movie, col:rating.
+% Is x already mean-normalized?
 
+% TODO: vectorize (:)
 
+est = Theta * X'; % size = num_users x num_movies
 
+ratings = Y & R
 
+err = (est-ratings).^2
 
+J = sum(sum(error))/2
 
-
-
+grad = 
 
 
 

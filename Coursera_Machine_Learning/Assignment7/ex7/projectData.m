@@ -18,8 +18,12 @@ Z = zeros(size(X, 1), K);
 %                    projection_k = x' * U(:, k);
 %
 
+% It seems like this assumes that the columns in U are organized by most principle first.
+% Does SVD do this? Does the covariance matrix do it?
 
+U_reduce = U(:,1:K); % size(U) = n x n. size(U_reduce) = n x K.
 
+Z = X*U_reduce;
 
 % =============================================================
 

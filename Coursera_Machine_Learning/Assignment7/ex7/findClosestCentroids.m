@@ -25,10 +25,8 @@ distances = []; % Temporary matrix for holding all centroid distances. Will be m
 
 % for i = 1:size(centroids, 1) % One centroid per row
 for i = 1:K % One centroid per row (centroids is a column vector)
-	% centroid = centroids(i,:); %size(centroid) == 1 x n
-	% % Distance to each example (m x 1 vector)
-	% distance = norm((X - centroid), 'fro', 'rows');
-	
+	% centroid = centroids(i,:); %size(centroid) == 1 x K
+	% Distance to each example (m x 1 vector)
 	distance = norm((X - centroids(i,:)), 'fro', 'rows');
 	% Accrue distances.
 	distances = [distances distance];
